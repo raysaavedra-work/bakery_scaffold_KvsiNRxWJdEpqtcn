@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Stripe Checkout</title>
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://js.stripe.com/v3"></script>
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .box {
+            display: inline-block;
+            background-color: white;
+            min-height: 50%;
+            position: relative;
+            width: 69%;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        .btn-primary {
+            background-color: #556cd6;
+            border-color: #556cd6;
+        }
+    </style>
+</head>​
+
+<body>
+
+<nav class="navbar navbar-light bg-light">
+    <span class="navbar-brand mb-0 h1">Stripe</span>
+</nav>
+
+<div style="text-align: center; margin-top: 10px;">
+    <div class="box">
+        <h3>Checkout Form</h3>
+        <div class="card" style="width: 18rem;">
+            <img src="./img/cupcake.jpg" class="card-img-top">
+            <div class="card-body">
+                <h5 class="card-title">Cupcake</h5>
+                <p class="card-text">$3.25</p>
+            </div>
+        </div>
+        <!-- Create a button that your customers click to complete their purchase. Customize the styling to suit your branding. -->
+        <button
+          style="background-color:#6772E5;color:#FFF;padding:8px 12px;border:0;border-radius:4px;font-size:1em"
+          id="checkout-button-sku_Fg6RQOAN2Tu58m"
+          role="link"
+        >Order </button>
+        ​
+    </div>
+</div>
+
+<div id="error-message"></div>
+
+<script>
+  var stripe = Stripe('pk_test_JnVlwAwmz6PcFeCMFXsztQHk00alHjeRTq');
+
+  var checkoutButton = document.getElementById('checkout-button-sku_Fg6RQOAN2Tu58m');
+  var createCheckoutSession = function(stripe) {
+
+      return fetch("/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          quantity: 1
+        })
+      }).then(function(result) {
+        return result.json();
+      });
+  };
+
+  var handleResult = function(result) {
+        console.log(result)
+      if (result.error) {
+        var displayError = document.getElementById("error-message");
+        displayError.textContent = result.error.message;
+      }
+    };
+
+
+  checkoutButton.addEventListener('click', function () {
+    // When the customer clicks on the button, redirect
+    // them to Checkout.
+
+    createCheckoutSession().then(function(data) {
+        stripe
+          .redirectToCheckout({
+            sessionId: data.sessionId
+          })
+          .then(handleResult);
+      });
+
+    // stripe.redirectToCheckout({
+    //   items: [{sku: 'sku_Fg6RQOAN2Tu58m', quantity: 1}],
+    //   // Do not rely on the redirect to the successUrl for fulfilling
+    //   // purchases, customers may not always reach the success_url after
+    //   // a successful payment.
+    //   // Instead use one of the strategies described in
+    //   // https://stripe.com/docs/payments/checkout/fulfillment
+    //   successUrl: 'http://127.0.0.1:5000/order_success.html?session_id={CHECKOUT_SESSION_ID}',
+    //   cancelUrl: 'http://127.0.0.1:5000/order.html'
+    // })
+    // .then(function (result) {
+    //   if (result.error) {
+    //     // If `redirectToCheckout` fails due to a browser or network
+    //     // error, display the localized error message to your customer.
+    //     var displayError = document.getElementById('error-message');
+    //     displayError.textContent = result.error.message;
+    //   }
+    // });
+  });
+</script>
+
+</body>
+</html>
